@@ -1,0 +1,17 @@
+# Core
+Django>=5.2,<5.3
+djangorestframework>=3.15,<4.0
+djangorestframework-simplejwt>=5.4,<6.0
+django-cors-headers>=4.6,<5.0
+whitenoise>=6.8,<7.0
+requests>=2.32,<3.0
+
+# PythonAnywhere MySQL (paid tiers) — uncomment if you switch off SQLite
+# mysqlclient>=2.2,<3.0
+
+# Frontend (Django templates + Tailwind, replaces the planned Next.js app)
+django-tailwind[cookiecutter]==4.6.0
+
+# Testing
+pytest>=8.3,<10.0
+pytest-django>=4.9,<5.0

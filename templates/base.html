@@ -1,0 +1,57 @@
+{% load static tailwind_tags %}<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <title>{% block title %}ThacKey{% endblock %}</title>
+  <link rel="icon" type="image/svg+xml" href="{% static 'img/logo.svg' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  {% tailwind_css %}
+  <script>
+    // restore theme before paint
+    if (localStorage.theme === "light") document.documentElement.classList.remove("dark");
+    function toggleTheme() {
+      const el = document.documentElement;
+      const dark = el.classList.toggle("dark");
+      localStorage.theme = dark ? "dark" : "light";
+    }
+  </script>
+  <style>body { font-family: Inter, system-ui, sans-serif; }</style>
+</head>
+<body class="min-h-screen bg-background text-foreground antialiased">
+
+  <header class="focus-fade mx-auto flex max-w-4xl items-center justify-between px-4 py-4">
+    <a href="{% url 'home' %}" class="flex items-center gap-2 font-mono text-lg font-semibold tracking-tight">
+      <img src="{% static 'img/logo.svg' %}" alt="ThacKey logo" class="h-6 w-6">
+      <span><span class="text-primary">thac</span>key</span>
+    </a>
+    <nav class="flex items-center gap-1 text-sm">
+      <a href="{% url 'home' %}" class="mode-pill {% if request.resolver_match.url_name == 'home' %}active{% endif %}">test</a>
+      {% if user.is_authenticated %}
+        <a href="{% url 'dashboard' %}" class="mode-pill {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">dashboard</a>
+        <a href="{% url 'analytics' %}" class="mode-pill {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">analytics</a>
+      {% endif %}
+    </nav>
+    <div class="flex items-center gap-2">
+      <button onclick="toggleTheme()" class="btn btn-ghost btn-sm" title="Toggle theme">◐</button>
+      {% if user.is_authenticated %}
+        <span class="hidden text-sm text-muted-foreground sm:inline">{{ user.username }}</span>
+        <form method="post" action="{% url 'logout' %}">{% csrf_token %}
+          <button type="submit" class="btn btn-ghost btn-sm">log out</button>
+        </form>
+      {% else %}
+        <a href="{% url 'login' %}" class="btn btn-ghost btn-sm">log in</a>
+        <a href="{% url 'register' %}" class="btn btn-primary btn-sm">sign up</a>
+      {% endif %}
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-4xl px-4 pb-16">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

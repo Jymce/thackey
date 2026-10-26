@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Results — ThacKey{% endblock %}
+
+{% block content %}
+<div class="mt-10">
+  <h1 class="mb-6 text-2xl font-semibold">Session results</h1>
+
+  <div class="grid gap-4 sm:grid-cols-4">
+    <div class="card p-6">
+      <div class="stat-number">{{ session.wpm|floatformat:0 }}</div>
+      <div class="text-sm text-muted-foreground">wpm</div>
+    </div>
+    <div class="card p-6">
+      <div class="stat-number">{{ session.raw_wpm|floatformat:0 }}</div>
+      <div class="text-sm text-muted-foreground">raw wpm</div>
+    </div>
+    <div class="card p-6">
+      <div class="stat-number">{{ session.accuracy|floatformat:1 }}<span class="text-lg">%</span></div>
+      <div class="text-sm text-muted-foreground">accuracy</div>
+    </div>
+    <div class="card p-6">
+      <div class="stat-number">{{ session.error_count }}</div>
+      <div class="text-sm text-muted-foreground">errors</div>
+    </div>
+  </div>
+
+  <div class="card mt-6">
+    <div class="card-header">
+      <h2 class="card-title">What this session revealed</h2>
+      <p class="card-description">
+        {% if session.source == 'adaptive' %}Adaptive test · {% endif %}
+        {{ session.char_count }} chars · {{ session.duration_s|floatformat:0 }}s · {{ session.created_at|date:"M j, H:i" }}
+      </p>
+    </div>
+    <div class="card-content">
+      {% if top_weaknesses %}
+        <p class="mb-3 text-sm text-muted-foreground">Current weakest patterns:</p>
+        <div class="flex flex-wrap gap-2">
+          {% for w in top_weaknesses %}
+            <span class="badge badge-destructive">{{ w.key|stringformat:"s" }} <span class="ml-1 opacity-70">{{ w.score|floatformat:2 }}</span></span>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-sm text-muted-foreground">No weakness data yet — keep typing, the profile builds over sessions.</p>
+      {% endif %}
+    </div>
+    <div class="card-footer gap-2">
+      <a href="{% url 'analytics' %}" class="btn btn-primary btn-sm">✦ practice my weaknesses</a>
+      <a href="{% url 'home' %}" class="btn btn-secondary btn-sm">new test</a>
+      <a href="{% url 'dashboard' %}" class="btn btn-ghost btn-sm">dashboard</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

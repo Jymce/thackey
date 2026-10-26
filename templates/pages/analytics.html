@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% block title %}Analytics — ThacKey{% endblock %}
+
+{% block content %}
+<div class="mt-10">
+  <h1 class="mb-6 text-2xl font-semibold">Analytics</h1>
+
+  <!-- AI coach report -->
+  <div class="card border-primary/30">
+    <div class="card-header">
+      <h2 class="card-title">✦ Coach's report</h2>
+      <p class="card-description">
+        {% if profile %}Based on {{ profile.sessions_analyzed }} session{{ profile.sessions_analyzed|pluralize }}{% endif %}
+      </p>
+    </div>
+    <div class="card-content">
+      <p class="text-sm leading-relaxed">{{ report }}</p>
+    </div>
+  </div>
+
+  {% if profile %}
+  <div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+    <!-- good vs bad keys -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Keys: good vs bad</h2>
+        <p class="card-description">green = strong · red = weak</p>
+      </div>
+      <div class="card-content space-y-4">
+        {% if strengths %}
+        <div>
+          <p class="mb-2 text-xs font-medium text-muted-foreground">STRONGEST</p>
+          <div class="flex flex-wrap gap-2">
+            {% for s in strengths %}
+              <span class="badge" style="background: hsl(142 71% 45% / 0.18); color: hsl(142 71% 45%)">{{ s.key }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        {% if top_weaknesses %}
+        <div>
+          <p class="mb-2 text-xs font-medium text-muted-foreground">WEAKEST</p>
+          <div class="flex flex-wrap gap-2">
+            {% for w in top_weaknesses %}
+              <span class="badge badge-destructive">{{ w.key }} <span class="ml-1 opacity-70">{{ w.score|floatformat:2 }}</span></span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        {% if not strengths and not top_weaknesses %}
+          <p class="text-sm text-muted-foreground">Keep typing — patterns emerge after a few sessions.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- categories -->
+    <div class="card">
+      <div class="card-header"><h2 class="card-title">Categories</h2></div>
+      <div class="card-content space-y-3">
+        {% for name, score in categories.items %}
+        <div>
+          <div class="mb-1 flex justify-between text-xs text-muted-foreground">
+            <span>{{ name }}</span><span>{{ score|floatformat:2 }}</span>
+          </div>
+          <div class="h-2 rounded-full bg-secondary">
+            <div class="h-2 rounded-full bg-primary" style="width: calc({{ score }} * 100%)"></div>
+          </div>
+        </div>
+        {% empty %}<p class="text-sm text-muted-foreground">No category data yet.</p>{% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- heatmap -->
+  <div class="card mt-6">
+    <div class="card-header">
+      <h2 class="card-title">Keyboard heatmap</h2>
+      <p class="card-description">hover a key for detail</p>
+    </div>
+    <div class="card-content">
+      {% for row in heatmap_rows %}
+      <div class="mb-1 flex justify-center gap-1">
+        {% for k in row %}
+        <div class="flex h-9 w-9 items-center justify-center rounded-md border border-border font-mono text-sm"
+             style="background: {% if k.intensity > 0.05 %}hsl(0 72% 58% / {{ k.intensity }}){% else %}hsl(142 71% 45% / {{ k.strength }}){% endif %}"
+             title="{{ k.key }} — score {{ k.score|floatformat:2 }}, err {{ k.err|floatformat:2 }}">
+          {{ k.key }}
+        </div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- suggested drill (adjustable) -->
+  {% if suggestion and suggestion.targets %}
+  <div class="card mt-6 border-primary/30">
+    <div class="card-header">
+      <h2 class="card-title">✦ Suggested drill</h2>
+      <p class="card-description">{{ suggestion.rationale }}</p>
+    </div>
+    <div class="card-content space-y-4">
+      <div>
+        <p class="mb-2 text-xs font-medium text-muted-foreground">TARGETS — click to include/exclude</p>
+        <div id="target-chips" class="flex flex-wrap gap-2">
+          {% for t in suggestion.targets %}
+          <button type="button" class="target-chip badge badge-destructive cursor-pointer opacity-100" data-target="{{ t }}">{{ t }}</button>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <p class="text-xs font-medium text-muted-foreground">LENGTH</p>
+        <div class="flex items-center rounded-md border border-border p-1">
+          <button type="button" class="mode-pill wc-pill {% if suggestion.word_count == 25 %}active{% endif %}" data-wc="25">25</button>
+          <button type="button" class="mode-pill wc-pill {% if suggestion.word_count == 50 %}active{% endif %}" data-wc="50">50</button>
+          <button type="button" class="mode-pill wc-pill {% if suggestion.word_count == 75 %}active{% endif %}" data-wc="75">75</button>
+          <button type="button" class="mode-pill wc-pill {% if suggestion.word_count == 100 %}active{% endif %}" data-wc="100">100</button>
+        </div>
+        <span class="text-xs text-muted-foreground">words</span>
+      </div>
+    </div>
+    <div class="card-footer gap-2">
+      <button id="btn-generate" class="btn btn-primary btn-sm">✦ generate this test</button>
+      <a id="btn-take-adaptive" href="{% url 'home' %}" class="btn btn-secondary btn-sm hidden">take it now →</a>
+      <span id="gen-status" class="text-xs text-muted-foreground"></span>
+    </div>
+  </div>
+  {% endif %}
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const csrf = document.querySelector('meta[name=csrf-token]').content;
+
+// toggle target chips in/out of the suggestion
+document.querySelectorAll('.target-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    chip.classList.toggle('opacity-100');
+    chip.classList.toggle('opacity-30');
+  });
+});
+
+// word-count picker
+let wordCount = {{ suggestion.word_count|default:50 }};
+document.querySelectorAll('.wc-pill').forEach(p => {
+  p.addEventListener('click', () => {
+    document.querySelectorAll('.wc-pill').forEach(x => x.classList.remove('active'));
+    p.classList.add('active');
+    wordCount = +p.dataset.wc;
+  });
+});
+
+const btn = document.getElementById('btn-generate');
+const takeBtn = document.getElementById('btn-take-adaptive');
+const statusEl = document.getElementById('gen-status');
+
+btn?.addEventListener('click', async () => {
+  const targets = [...document.querySelectorAll('.target-chip')]
+    .filter(c => c.classList.contains('opacity-100'))
+    .map(c => c.dataset.target);
+  btn.disabled = true;
+  statusEl.textContent = 'building a test around your weak spots…';
+  try {
+    const res = await fetch('/api/v1/adaptive/generate/', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrf},
+      body: JSON.stringify({ targets, word_count: wordCount }),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const test = await res.json();
+    sessionStorage.setItem('adaptiveTest', JSON.stringify(test));
+    statusEl.textContent = test.generated_by === 'llm'
+      ? 'AI-generated test ready.'
+      : 'test ready (heuristic — set an LLM key for AI text).';
+    takeBtn.classList.remove('hidden');
+  } catch (e) {
+    statusEl.textContent = 'generation failed — try again';
+  }
+  btn.disabled = false;
+});
+</script>
+{% endblock %}

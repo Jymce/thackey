@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — ThacKey{% endblock %}
+
+{% block content %}
+<div class="mt-10">
+  <h1 class="mb-6 text-2xl font-semibold">Dashboard</h1>
+
+  <div class="grid gap-4 sm:grid-cols-4">
+    <div class="card p-6">
+      <div class="stat-number">{{ best_wpm|floatformat:0 }}</div>
+      <div class="text-sm text-muted-foreground">best wpm</div>
+    </div>
+    <div class="card p-6">
+      <div class="stat-number">{{ avg_wpm|floatformat:0 }}</div>
+      <div class="text-sm text-muted-foreground">avg wpm</div>
+    </div>
+    <div class="card p-6">
+      <div class="stat-number">{{ avg_acc|floatformat:1 }}<span class="text-lg">%</span></div>
+      <div class="text-sm text-muted-foreground">avg accuracy</div>
+    </div>
+    <div class="card p-6">
+      <div class="stat-number">{{ total }}</div>
+      <div class="text-sm text-muted-foreground">tests taken</div>
+    </div>
+  </div>
+
+  {% if sparkline %}
+  <div class="card mt-6">
+    <div class="card-header"><h2 class="card-title">WPM trend</h2></div>
+    <div class="card-content">
+      <svg viewBox="0 0 300 60" class="h-16 w-full" preserveAspectRatio="none">
+        <polyline points="{{ sparkline }}" fill="none" stroke="hsl(24 95% 53%)" stroke-width="2"/>
+      </svg>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="card mt-6">
+    <div class="card-header"><h2 class="card-title">History</h2></div>
+    <div class="card-content">
+      {% if sessions %}
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-border text-left text-muted-foreground">
+            <th class="py-2 font-medium">date</th>
+            <th class="font-medium">mode</th>
+            <th class="font-medium">source</th>
+            <th class="text-right font-medium">wpm</th>
+            <th class="text-right font-medium">acc</th>
+            <th class="text-right font-medium">errors</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in sessions %}
+          <tr class="border-b border-border/50 last:border-0">
+            <td class="py-2 text-muted-foreground">{{ s.created_at|date:"M j, H:i" }}</td>
+            <td>{{ s.mode }}</td>
+            <td>{% if s.source == 'adaptive' %}<span class="badge badge-primary">adaptive</span>{% else %}standard{% endif %}</td>
+            <td class="text-right font-mono">{{ s.wpm|floatformat:0 }}</td>
+            <td class="text-right font-mono">{{ s.accuracy|floatformat:0 }}%</td>
+            <td class="text-right font-mono">{{ s.error_count }}</td>
+            <td class="text-right"><a href="{% url 'results' s.pk %}" class="text-primary hover:underline">view</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <p class="text-sm text-muted-foreground">No sessions yet — <a href="{% url 'home' %}" class="text-primary hover:underline">take your first test</a>.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

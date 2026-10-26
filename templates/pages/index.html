@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}ThacKey — typing test{% endblock %}
+
+{% block content %}
+<div id="typing-root"
+     data-auth="{{ user.is_authenticated|yesno:'true,false' }}"
+     class="mt-10">
+
+  <!-- mode pills -->
+  <div class="focus-fade mb-8 flex items-center justify-center gap-1 text-sm">
+    <div class="flex items-center rounded-md border border-border p-1">
+      <button class="mode-pill" data-count="25">25</button>
+      <button class="mode-pill active" data-count="50">50</button>
+      <button class="mode-pill" data-count="100">100</button>
+      <span class="mx-1 text-border">|</span>
+      <button id="adaptive-pill" class="mode-pill adaptive" title="AI-built test from your weaknesses">✦ adaptive</button>
+      <span class="mx-1 text-border">|</span>
+      <button id="sound-toggle" class="mode-pill" title="toggle typing sound">sound on</button>
+    </div>
+    {% if not user.is_authenticated %}
+      <span class="ml-3 text-xs text-muted-foreground">sign in to save progress</span>
+    {% endif %}
+  </div>
+
+  <!-- typing surface -->
+  <div class="relative">
+    <div id="typing-area"
+         class="typing-text cursor-text rounded-lg outline-none"
+         tabindex="0" aria-label="Typing test">
+      <span class="char-pending">loading…</span>
+    </div>
+
+    <!-- live stats -->
+    <div class="mt-6 flex items-center justify-center gap-6 text-sm text-muted-foreground">
+      <span><span id="live-wpm" class="font-mono text-foreground">0</span> wpm</span>
+      <span><span id="live-acc" class="font-mono text-foreground">100</span>%</span>
+      <span id="live-time" class="font-mono">0s</span>
+    </div>
+    <p class="focus-fade mt-3 text-center text-xs text-muted-foreground">
+      press <span class="kbd">tab</span> to restart
+    </p>
+
+    <!-- on-screen keyboard -->
+    <div id="kb" class="kb" aria-hidden="true"></div>
+  </div>
+
+</div>
+
+<!-- result + analysis modal -->
+<div id="result-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
+  <div class="card modal-card w-full max-w-lg" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="card-header flex-row items-start justify-between">
+      <div>
+        <h2 id="modal-title" class="card-title">Session complete</h2>
+        <p id="modal-note" class="card-description mt-1"></p>
+      </div>
+      <button id="modal-close" class="btn btn-ghost btn-sm" aria-label="close">✕</button>
+    </div>
+
+    <div class="card-content space-y-5">
+      <!-- stats -->
+      <div class="grid grid-cols-4 gap-2 text-center">
+        <div><div id="res-wpm" class="stat-number">0</div><div class="text-xs text-muted-foreground">wpm</div></div>
+        <div><div id="res-acc" class="stat-number">0</div><div class="text-xs text-muted-foreground">acc%</div></div>
+        <div><div id="res-err" class="stat-number">0</div><div class="text-xs text-muted-foreground">errors</div></div>
+        <div><div id="res-time" class="stat-number">0</div><div class="text-xs text-muted-foreground">secs</div></div>
+      </div>
+
+      <!-- this session's hot spots (instant, client-computed) -->
+      <div id="modal-hotspots-wrap" class="hidden">
+        <p class="mb-2 text-xs font-medium text-muted-foreground">THIS TEST EXPOSED</p>
+        <div id="modal-hotspots" class="flex flex-wrap gap-2"></div>
+      </div>
+
+      <!-- profile-level weaknesses (fills in after save) -->
+      <div id="modal-weak-wrap" class="hidden">
+        <p class="mb-2 text-xs font-medium text-muted-foreground">YOUR WEAKEST OVERALL</p>
+        <div id="modal-weaknesses" class="flex flex-wrap gap-2"></div>
+      </div>
+
+      <!-- suggestion -->
+      <div id="modal-suggest-wrap" class="hidden rounded-md border border-primary/30 p-3">
+        <p class="mb-1 text-xs font-medium text-primary">✦ suggested drill</p>
+        <p id="modal-rationale" class="text-sm text-muted-foreground"></p>
+      </div>
+    </div>
+
+    <div class="card-footer flex-wrap justify-center gap-2">
+      <button id="modal-practice" class="btn btn-primary btn-sm hidden">✦ practice these</button>
+      <button id="modal-newtest" class="btn btn-secondary btn-sm">new test <span class="kbd ml-1">tab</span></button>
+      <a id="res-view" href="#" class="btn btn-ghost btn-sm hidden">details →</a>
+      <a id="res-login" href="{% url 'login' %}" class="btn btn-outline btn-sm hidden">log in to save</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/typing.js' %}"></script>
+{% endblock %}

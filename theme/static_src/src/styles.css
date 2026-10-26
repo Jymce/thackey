@@ -1,0 +1,189 @@
+@import "tailwindcss";
+
+/**
+  * Scan all Django templates / JS for Tailwind classes.
+  */
+@source "../../../**/*.{html,py,js}";
+
+/**
+  * shadcn-style design tokens (Tailwind v4 pattern).
+  * Dark-first per design.md — <html class="dark"> is the default in base.html.
+  */
+:root {
+  --background: hsl(240 6% 97%);
+  --foreground: hsl(240 10% 10%);
+  --card: hsl(0 0% 100%);
+  --muted: hsl(240 5% 90%);
+  --muted-foreground: hsl(240 4% 46%);
+  --primary: hsl(24 95% 53%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(240 5% 92%);
+  --secondary-foreground: hsl(240 10% 10%);
+  --destructive: hsl(0 84% 60%);
+  --border: hsl(240 6% 88%);
+  --input: hsl(240 6% 88%);
+  --ring: hsl(24 95% 53%);
+  --correct: hsl(142 71% 45%);
+  --incorrect: hsl(0 84% 60%);
+  --caret: hsl(24 95% 53%);
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: hsl(240 10% 4%);
+  --foreground: hsl(240 5% 92%);
+  --card: hsl(240 8% 8%);
+  --muted: hsl(240 6% 14%);
+  --muted-foreground: hsl(240 4% 55%);
+  --primary: hsl(24 95% 53%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(240 6% 14%);
+  --secondary-foreground: hsl(240 5% 92%);
+  --destructive: hsl(0 72% 58%);
+  --border: hsl(240 6% 16%);
+  --input: hsl(240 6% 16%);
+  --ring: hsl(24 95% 53%);
+  --correct: hsl(142 71% 45%);
+  --incorrect: hsl(0 72% 58%);
+  --caret: hsl(24 95% 53%);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-correct: var(--correct);
+  --color-incorrect: var(--incorrect);
+  --color-caret: var(--caret);
+  --radius-md: var(--radius);
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* ---------- shadcn-style component classes ---------- */
+
+@layer components {
+  /* Button (variants: .btn-primary is the default look) */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md
+      text-sm font-medium transition-colors focus-visible:outline-none
+      focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none
+      disabled:opacity-50 h-9 px-4 cursor-pointer select-none;
+  }
+  .btn-sm { @apply h-8 px-3 text-xs; }
+  .btn-lg { @apply h-10 px-6; }
+  .btn-primary { @apply bg-primary text-primary-foreground hover:bg-primary/90; }
+  .btn-secondary { @apply bg-secondary text-secondary-foreground hover:bg-secondary/80; }
+  .btn-outline { @apply border border-border bg-transparent hover:bg-secondary; }
+  .btn-ghost { @apply hover:bg-secondary; }
+  .btn-destructive { @apply bg-destructive text-white hover:bg-destructive/90; }
+
+  /* Card */
+  .card {
+    @apply rounded-lg border border-border bg-card text-foreground shadow-sm;
+  }
+  .card-header { @apply flex flex-col gap-1 p-6; }
+  .card-title { @apply text-lg font-semibold leading-none; }
+  .card-description { @apply text-sm text-muted-foreground; }
+  .card-content { @apply p-6 pt-0; }
+  .card-footer { @apply flex items-center p-6 pt-0; }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center rounded-md border border-transparent px-2 py-0.5
+      text-xs font-semibold transition-colors;
+  }
+  .badge-primary { @apply bg-primary text-primary-foreground; }
+  .badge-secondary { @apply bg-secondary text-secondary-foreground; }
+  .badge-outline { @apply border-border text-foreground; }
+  .badge-destructive { @apply bg-destructive/15 text-destructive; }
+
+  /* Form */
+  .input {
+    @apply flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1
+      text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none
+      focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-50;
+  }
+  .label { @apply text-sm font-medium leading-none; }
+
+  /* Misc */
+  .separator { @apply h-px w-full bg-border; }
+  .kbd {
+    @apply rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-xs
+      text-muted-foreground;
+  }
+  .stat-number { @apply font-mono text-3xl font-bold tabular-nums; }
+
+  /* ---------- typing-test classes ---------- */
+  .typing-text { @apply font-mono text-2xl leading-relaxed tracking-wide select-none; }
+  .char-pending { @apply text-muted-foreground; }
+  .char-correct { @apply text-foreground; }
+  .char-incorrect { @apply text-incorrect; }
+  .char-current { @apply relative; }
+  .char-current::before {
+    content: "";
+    @apply absolute -left-0.5 top-0 h-full w-0.5 bg-caret;
+    animation: caret-blink 1.1s step-end infinite;
+  }
+  .caret-blink {
+    @apply inline-block w-0.5 h-7 bg-caret align-middle;
+    animation: caret-blink 1.1s step-end infinite;
+  }
+
+  /* test-mode pill toggles */
+  .mode-pill {
+    @apply rounded-md px-3 py-1 text-sm text-muted-foreground transition-colors
+      hover:text-foreground cursor-pointer;
+  }
+  .mode-pill.active { @apply bg-secondary text-foreground; }
+  .mode-pill.adaptive { @apply text-primary; }
+
+  /* ---------- on-screen keyboard ---------- */
+  .kb { @apply mt-8 select-none space-y-1; }
+  .kb-row { @apply flex justify-center gap-1; }
+  .kb-key {
+    @apply flex h-6 min-w-6 items-center justify-center rounded border
+      border-border bg-card px-0.5 font-mono text-[10px] text-muted-foreground
+      transition-all duration-100 sm:h-7 sm:min-w-7;
+  }
+  .kb-key.next { @apply border-primary/70 text-foreground; }
+  .kb-key.pressed { @apply scale-90 border-primary bg-primary text-primary-foreground; }
+  .kb-key.err { @apply border-destructive bg-destructive text-white; }
+  .kb-wide { @apply min-w-9; }
+  .kb-space { @apply min-w-36 sm:min-w-52; }
+
+  /* ---------- focus mode ---------- */
+  .focus-fade { transition: opacity .45s ease; }
+}
+
+body.focus-mode .focus-fade { opacity: 0; pointer-events: none; }
+
+@media (max-width: 480px) {
+  .kb { display: none; }
+}
+
+.modal-card {
+  animation: modal-in 180ms ease-out;
+}
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(0.96) translateY(6px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes caret-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .char-current::before, .caret-blink { animation: none; }
+}

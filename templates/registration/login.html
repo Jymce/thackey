@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Log in — ThacKey{% endblock %}
+
+{% block content %}
+<div class="mx-auto mt-16 max-w-sm">
+  <div class="card">
+    <div class="card-header">
+      <h1 class="card-title">Log in</h1>
+      <p class="card-description">welcome back</p>
+    </div>
+    <form method="post" class="card-content space-y-4">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+        <p class="text-sm text-destructive">{{ form.non_field_errors }}</p>
+      {% endif %}
+      <div class="space-y-1">
+        <label class="label" for="{{ form.username.id_for_label }}">username</label>
+        {{ form.username }}
+      </div>
+      <div class="space-y-1">
+        <label class="label" for="{{ form.password.id_for_label }}">password</label>
+        {{ form.password }}
+      </div>
+      <button type="submit" class="btn btn-primary w-full">log in</button>
+    </form>
+    <div class="card-footer justify-center text-sm text-muted-foreground">
+      no account? <a href="{% url 'register' %}" class="text-primary hover:underline">sign up</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
